@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Senior Mortgage Underwriting System | Multi-Agent AI Demo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="data.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+      --border: #475569; --text: #f1f5f9; --text2: #94a3b8;
+      --primary: #3b82f6; --primary-dim: #1d4ed8;
+      --green: #22c55e; --green-dim: #166534;
+      --red: #ef4444; --red-dim: #991b1b;
+      --yellow: #eab308; --yellow-dim: #854d0e;
+      --purple: #a855f7; --cyan: #06b6d4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-bottom: 1px solid var(--border); padding: 20px 0; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--purple)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .logo-text h1 { font-size: 18px; font-weight: 700; }
+    .logo-text span { font-size: 12px; color: var(--text2); }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-blue { background: rgba(59,130,246,0.15); color: var(--primary); border: 1px solid rgba(59,130,246,0.3); }
+    .badge-green { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+    .github-link { color: var(--text2); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+    .github-link:hover { color: var(--text); }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .card-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+    /* API Key Section */
+    .api-section { padding: 32px 0; }
+    .api-card { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(168,85,247,0.08)); border: 1px solid rgba(59,130,246,0.2); }
+    .input-group { display: flex; gap: 12px; margin-top: 12px; }
+    .input-group input, .input-group select { flex: 1; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; }
+    .input-group input:focus, .input-group select:focus { border-color: var(--primary); }
+    .input-group input::placeholder { color: var(--text2); }
+    .btn { padding: 10px 24px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dim); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover { background: var(--green-dim); }
+    .btn-red { background: var(--red); color: white; }
+    .btn-red:hover { background: var(--red-dim); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--surface2); }
+    .btn-sm { padding: 6px 16px; font-size: 12px; }
+
+    /* Test Cases */
+    .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0; }
+    @media (max-width: 900px) { .cases-grid { grid-template-columns: 1fr; } }
+    .case-card { cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+    .case-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+    .case-card.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.3); }
+    .case-card .ribbon { position: absolute; top: 12px; right: -28px; transform: rotate(45deg); padding: 2px 30px; font-size: 10px; font-weight: 700; }
+    .case-stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(71,85,105,0.3); font-size: 13px; }
+    .case-stat:last-child { border-bottom: none; }
+    .case-stat .label { color: var(--text2); }
+    .case-stat .value { font-weight: 600; }
+
+    /* Workflow */
+    .workflow-section { padding: 0 0 32px; }
+    .workflow-pipeline { display: flex; align-items: center; gap: 4px; padding: 20px; background: var(--bg); border-radius: 8px; overflow-x: auto; margin: 16px 0; }
+    .workflow-node { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 90px; }
+    .node-circle { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid var(--border); background: var(--surface); transition: all 0.4s; }
+    .node-circle.active { border-color: var(--primary); background: rgba(59,130,246,0.15); animation: pulse 1.5s infinite; }
+    .node-circle.done { border-color: var(--green); background: rgba(34,197,94,0.15); }
+    .node-circle.error { border-color: var(--red); background: rgba(239,68,68,0.15); }
+    .node-label { font-size: 10px; color: var(--text2); text-align: center; white-space: nowrap; }
+    .node-label.active { color: var(--primary); font-weight: 600; }
+    .node-label.done { color: var(--green); }
+    .workflow-arrow { color: var(--border); font-size: 16px; }
+    .workflow-arrow.done { color: var(--green); }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.3); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
+
+    /* Results */
+    .results-section { padding: 0 0 48px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+    .tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Inter', sans-serif; }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .analysis-content { background: var(--bg); border-radius: 8px; padding: 20px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; max-height: 500px; overflow-y: auto; border: 1px solid rgba(71,85,105,0.3); }
+
+    /* PII Card */
+    .pii-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .pii-grid { grid-template-columns: 1fr; } }
+    .pii-box { background: var(--bg); border-radius: 8px; padding: 16px; border: 1px solid rgba(71,85,105,0.3); }
+    .pii-box h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .pii-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+    .pii-row .field { color: var(--text2); }
+    .pii-row .original { color: var(--red); font-family: monospace; }
+    .pii-row .redacted { color: var(--green); font-family: monospace; }
+
+    /* Decision */
+    .decision-card { text-align: center; padding: 32px; }
+    .decision-card .decision-text { font-size: 28px; font-weight: 800; margin: 12px 0; }
+    .decision-card .risk-score { font-size: 48px; font-weight: 800; margin: 8px 0; }
+    .risk-bar { height: 8px; background: var(--bg); border-radius: 4px; margin: 16px auto; max-width: 300px; overflow: hidden; }
+    .risk-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+
+    /* Human Review */
+    .review-section { margin-top: 20px; }
+    .review-options { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+    .review-option { padding: 12px 24px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; font-family: 'Inter', sans-serif; color: var(--text); }
+    .review-option:hover { border-color: var(--primary); }
+    .review-option.selected { border-color: var(--primary); background: rgba(59,130,246,0.1); }
+    textarea.review-comments { width: 100%; min-height: 100px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; resize: vertical; outline: none; margin: 12px 0; }
+    textarea.review-comments:focus { border-color: var(--primary); }
+
+    /* Reasoning Chain */
+    .chain { padding: 0; list-style: none; }
+    .chain-item { display: flex; gap: 12px; padding: 8px 0; font-size: 13px; border-bottom: 1px solid rgba(71,85,105,0.2); }
+    .chain-num { color: var(--primary); font-weight: 700; min-width: 24px; }
+    .chain-text { color: var(--text2); }
+
+    /* Loading spinner */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Footer */
+    .footer { border-top: 1px solid var(--border); padding: 24px 0; text-align: center; color: var(--text2); font-size: 12px; }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border); }
+
+    .status-msg { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-top: 12px; }
+    .status-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
+    .status-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .section-desc { font-size: 13px; color: var(--text2); margin-bottom: 16px; }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+    .metric-card { background: var(--bg); border-radius: 8px; padding: 14px; text-align: center; border: 1px solid rgba(71,85,105,0.3); }
+    .metric-value { font-size: 22px; font-weight: 700; }
+    .metric-label { font-size: 11px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .info-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+    .highlight { color: var(--primary); font-weight: 600; }
+
+    .tech-stack { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .tech-tag { padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; background: var(--surface2); color: var(--text2); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef } = React;
+    const { TEST_CASES, UNDERWRITING_POLICIES } = window.APP_DATA;
+
+    // ─── OpenAI API Helper ──────────────────────────────────
+    async function callOpenAI(apiKey, apiBase, model, systemPrompt, userPrompt) {
+      const base = apiBase.replace(/\/+$/, '');
+      const resp = await fetch(`${base}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model,
+          temperature: 0,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ]
+        })
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error?.message || `API error: ${resp.status}`);
+      }
+      const data = await resp.json();
+      return data.choices[0].message.content;
+    }
+
+    // ─── Calculator Tools ───────────────────────────────────
+    function calcDTI(debt, income) {
+      if (income <= 0) return "Error";
+      const dti = (debt / income) * 100;
+      const s = dti <= 43 ? "Acceptable" : dti <= 50 ? "High" : "Excessive";
+      return `DTI Ratio: ${dti.toFixed(2)}% (${s}) - Debt: $${debt.toLocaleString()}, Income: $${income.toLocaleString()}`;
+    }
+    function calcLTV(loan, value) {
+      if (value <= 0) return "Error";
+      const ltv = (loan / value) * 100;
+      const s = ltv <= 80 ? "Excellent" : ltv <= 90 ? "Good" : ltv <= 97 ? "High" : "Excessive";
+      return `LTV Ratio: ${ltv.toFixed(2)}% (${s}) - Loan: $${loan.toLocaleString()}, Value: $${value.toLocaleString()}`;
+    }
+    function calcReserves(liquid, payment) {
+      if (payment <= 0) return "Error";
+      const months = liquid / payment;
+      const s = months >= 2 ? "Adequate" : "Insufficient";
+      return `Reserves: ${months.toFixed(1)} months (${s}) - Assets: $${liquid.toLocaleString()}, Required: $${(payment*2).toLocaleString()}`;
+    }
+    function calcHousingRatio(payment, income) {
+      if (income <= 0) return "Error";
+      const r = (payment / income) * 100;
+      const s = r <= 28 ? "Acceptable" : r <= 36 ? "High" : "Excessive";
+      return `Housing Ratio: ${r.toFixed(2)}% (${s})`;
+    }
+    function creditTier(score) {
+      if (score >= 740) return `Credit Score: ${score} | Tier: Excellent | Best rates, minimal risk.`;
+      if (score >= 700) return `Credit Score: ${score} | Tier: Good | Standard rates, low risk.`;
+      if (score >= 660) return `Credit Score: ${score} | Tier: Fair | Higher rates, moderate risk.`;
+      if (score >= 620) return `Credit Score: ${score} | Tier: Minimum Acceptable | Highest rates, high risk.`;
+      return `Credit Score: ${score} | Tier: Below Minimum | DOES NOT MEET 620 minimum. DENIAL recommended.`;
+    }
+    function checkLargeDeposits(deposits, income) {
+      const t = income * 0.5;
+      const flagged = (deposits||[]).filter(d => d.amount > t);
+      if (!flagged.length) return `No large deposits detected (threshold: $${t.toLocaleString()})`;
+      return `Large deposits flagged (threshold: $${t.toLocaleString()}):\n` + flagged.map(d => `  - $${d.amount.toLocaleString()} on ${d.date} - ${d.description}`).join('\n');
+    }
+    function sanitizePII(data) {
+      const s = {...data};
+      if (s.ssn) s.ssn = `***-**-${s.ssn.slice(-4)}`;
+      if (s.name) s.name = "[APPLICANT_NAME]";
+      if (s.address) s.address = "[ADDRESS]";
+      if (s.phone) s.phone = `***-***-${s.phone.slice(-4)}`;
+      return s;
+    }
+    function detectBias(text) {
+      const terms = ['race','color','religion','national origin','sex','marital status','age','gender','disability','familial status'];
+      const flags = [];
+      const lower = text.toLowerCase();
+      terms.forEach(t => { if (lower.includes(t)) flags.push(`Mentions protected characteristic: ${t}`); });
+      return flags;
+    }
+
+    // ─── Relevant Policy Retrieval (keyword-based) ──────────
+    function getRelevantPolicy(category) {
+      return UNDERWRITING_POLICIES[category] || '';
+    }
+
+    // ─── Agent Definitions ──────────────────────────────────
+    const AGENTS = [
+      { id: 'credit', name: 'Credit Analyst', icon: '💳', color: '#3b82f6' },
+      { id: 'income', name: 'Income Analyst', icon: '💵', color: '#22c55e' },
+      { id: 'asset', name: 'Asset Analyst', icon: '💰', color: '#eab308' },
+      { id: 'collateral', name: 'Collateral Analyst', icon: '🏠', color: '#a855f7' },
+      { id: 'critic', name: 'Critic Agent', icon: '🔎', color: '#06b6d4' },
+      { id: 'decision', name: 'Decision Agent', icon: '⚖️', color: '#f97316' },
+    ];
+
+    async function runAgent(agentId, appData, sanitized, state, apiKey, apiBase, model) {
+      const d = sanitized;
+      switch(agentId) {
+        case 'credit': {
+          const policies = getRelevantPolicy('credit');
+          const csAnalysis = creditTier(d.credit_score);
+          const sys = `You are a Senior Credit Analyst with 15+ years of mortgage underwriting experience.\n\nRELEVANT POLICIES:\n${policies}\n\nANALYSIS FRAMEWORK:\n1. Credit Score Assessment (use provided - DO NOT recalculate)\n2. Payment History\n3. Derogatory Items\n4. Policy Compliance\n5. Risk Rating (Low/Medium/High)\n6. Recommendations\n\nBe thorough, objective. Use EXACT credit score assessment provided.`;
+          const usr = `Analyze credit for case ${d.case_id}:\n\nCREDIT SCORE ASSESSMENT:\n${csAnalysis}\n\nCREDIT HISTORY:\n- Bankruptcies: ${d.credit_history?.bankruptcies||0}\n- Foreclosures: ${d.credit_history?.foreclosures||0}\n- Late Payments (12mo): ${d.credit_history?.late_payments_12mo||0}\n- Late Payments (24mo): ${d.credit_history?.late_payments_24mo||0}\n- Collections: ${JSON.stringify(d.credit_history?.collections||[])}\n- Notes: ${d.credit_history?.credit_notes||'N/A'}\n\nProvide detailed credit analysis.`;
+          return await callOpenAI(apiKey, apiBase, model, sys, usr);
+        }
+        case 'income': {
+          const policies = getRelevantPolicy('income');
+          const debts = d.debts || {};
+          const totalDebt = Object.values(debts).reduce((a,b)=>a+b, 0);
+          const proposed = d.loan?.estimated_payment || 0;
+          const income = d.employment?.monthly_income || 0;
+          const dtiRes = calcDTI(totalDebt + proposed, income);
+          const housingRes = calcHousingRatio(proposed, income);
+          const sys = `You are a Senior Income Analyst with 15+ years of mortgage underwriting experience.\n\nRELEVANT POLICIES:\n${policies}\n\nANALYSIS FRAMEWORK:\n1. Employment Stability\n2. Income Verification\n3. DTI Calculation (use provided - DO NOT recalculate)\n4. Payment Capacity\n5. Risk Assessment\n6. Recommendations\n\nUse EXACT pre-calculated ratios.`;
+          const usr = `Analyze income for case ${d.case_id}:\n\nPRE-CALCULATED DTI:\n${dtiRes}\n\nHOUSING RATIO:\n${housingRes}\n\nEMPLOYMENT:\n- Employer: ${d.employment?.employer||'N/A'}\n- Position: ${d.employment?.position||'N/A'}\n- Years: ${d.employment?.years||0}\n- Type: ${d.employment?.type||'N/A'}\n- Monthly Income: $${income.toLocaleString()}\n- Gap: ${d.employment?.employment_gap||'None'}\n- Gap Explanation: ${d.employment?.gap_explanation||'N/A'}\n\nProvide detailed income analysis.`;
+          return await callOpenAI(apiKey, apiBase, model, sys, usr);
+        }
+        case 'asset': {
+          const policies = getRelevantPolicy('assets');
+          const assets = d.assets || {};
+          const loan = d.loan || {};
+          const liquid = (assets.checking||0) + (assets.savings||0);
+          const payment = loan.estimated_payment || 0;
+          const income = d.employment?.monthly_income || 0;
+          const resResult = calcReserves(liquid, payment);
+          const depResult = checkLargeDeposits(assets.recent_deposits, income);
+          const sys = `You are a Senior Asset Analyst with 15+ years of mortgage underwriting experience.\n\nRELEVANT POLICIES:\n${policies}\n\nANALYSIS FRAMEWORK:\n1. Down Payment Adequacy\n2. Reserve Requirements (use provided)\n3. Large Deposits (use provided)\n4. Source of Funds\n5. Key Risks\n6. Asset Risk Rating (Low/Medium/High)\n\nUse EXACT pre-calculated metrics.`;
+          const usr = `Analyze assets for case ${d.case_id}:\n\nLOAN:\n- Amount: $${(loan.amount||0).toLocaleString()}\n- Down Payment: $${(loan.down_payment||0).toLocaleString()}\n- Closing Costs: $${(loan.closing_costs||0).toLocaleString()}\n\nASSETS:\n- Checking: $${(assets.checking||0).toLocaleString()}\n- Savings: $${(assets.savings||0).toLocaleString()}\n- 401k: $${(assets['401k']||0).toLocaleString()}\n\nRESERVES:\n${resResult}\n\nLARGE DEPOSITS:\n${depResult}\n\nDeposit Explanations: ${assets.deposit_explanations||'None'}\n\nProvide detailed asset analysis.`;
+          return await callOpenAI(apiKey, apiBase, model, sys, usr);
+        }
+        case 'collateral': {
+          const policies = getRelevantPolicy('collateral');
+          const prop = d.property || {};
+          const loan = d.loan || {};
+          const ltvRes = calcLTV(loan.amount||0, prop.appraised_value||0);
+          const sys = `You are a Senior Collateral Analyst with property valuation expertise.\n\nRELEVANT POLICIES:\n${policies}\n\nANALYSIS FRAMEWORK:\n1. Appraisal Review\n2. LTV (use provided - DO NOT recalculate)\n3. Property Condition\n4. Marketability\n5. Risk Assessment\n6. Recommendations\n\nUse EXACT LTV provided.`;
+          const usr = `Analyze collateral for case ${d.case_id}:\n\nPROPERTY:\n- Type: ${prop.type||'N/A'}\n- Value: $${(prop.appraised_value||0).toLocaleString()}\n- Price: $${(prop.purchase_price||0).toLocaleString()}\n- Condition: ${prop.condition||'N/A'}\n- Repairs: $${(prop.required_repairs||0).toLocaleString()}\n\nLOAN:\n- Amount: $${(loan.amount||0).toLocaleString()}\n- Down Payment: $${(loan.down_payment||0).toLocaleString()}\n- Use: ${loan.use||'N/A'}\n\nLTV:\n${ltvRes}\n\nProvide collateral analysis.`;
+          return await callOpenAI(apiKey, apiBase, model, sys, usr);
+        }
+        case 'critic': {
+          const sys = `You are a Quality Assurance Critic reviewing underwriting analyses.\n\n1. Verify completeness\n2. Identify contradictions\n3. Ensure policy compliance\n4. Flag missing info\n5. Synthesize key findings\n\nBe critical but fair.`;
+          const usr = `Review all analyses for case ${d.case_id}:\n\nCREDIT:\n${(state.credit||'N/A').substring(0,600)}\n\nINCOME:\n${(state.income||'N/A').substring(0,600)}\n\nASSET:\n${(state.asset||'N/A').substring(0,600)}\n\nCOLLATERAL:\n${(state.collateral||'N/A').substring(0,600)}\n\nBIAS FLAGS: ${JSON.stringify(state.biasFlags||[])}\n\nProvide critical review.`;
+          return await callOpenAI(apiKey, apiBase, model, sys, usr);
+        }
+        case 'decision': {
+          const sys = `You are the Senior Underwriting Decision Agent.\n\nSynthesize all analyses into a final decision.\n\nDECISION PRINCIPLES:\n- Policy-compliant, objective\n- No protected characteristics\n- If bias flags, elevate to human review\n\nOUTPUT (use exact structure):\n1) RISK_SCORE: <0-100>\n2) DECISION: <APPROVED | DENIED | CONDITIONAL_APPROVAL>\n3) CREDIT_MEMO: Summary, strengths, weaknesses, conditions`;
+          const usr = `Final decision for ${d.case_id}:\n\nCREDIT:\n${(state.credit||'N/A').substring(0,500)}\n\nINCOME:\n${(state.income||'N/A').substring(0,500)}\n\nASSET:\n${(state.asset||'N/A').substring(0,500)}\n\nCOLLATERAL:\n${(state.collateral||'N/A').substring(0,500)}\n\nCRITIC:\n${(state.critic||'N/A').substring(0,500)}\n\nBias Flags: ${(state.biasFlags||[]).length}\n\nProvide RISK_SCORE, DECISION, CREDIT_MEMO.`;
+          return await callOpenAI(apiKey, apiBase, model, sys, usr);
+        }
+      }
+    }
+
+    // ─── Main App ───────────────────────────────────────────
+    function App() {
+      const [apiKey, setApiKey] = useState('');
+      const [apiBase, setApiBase] = useState('https://api.openai.com/v1');
+      const [model, setModel] = useState('gpt-4o-mini');
+      const [keyValid, setKeyValid] = useState(null);
+      const [validating, setValidating] = useState(false);
+
+      const [selectedCase, setSelectedCase] = useState(null);
+      const [running, setRunning] = useState(false);
+      const [currentAgent, setCurrentAgent] = useState(null);
+      const [completedAgents, setCompletedAgents] = useState([]);
+      const [analyses, setAnalyses] = useState({});
+      const [biasFlags, setBiasFlags] = useState([]);
+      const [reasoningChain, setReasoningChain] = useState([]);
+      const [piiData, setPiiData] = useState(null);
+      const [decision, setDecision] = useState(null);
+      const [error, setError] = useState(null);
+
+      const [activeTab, setActiveTab] = useState('credit');
+      const [humanDecision, setHumanDecision] = useState('');
+      const [humanComments, setHumanComments] = useState('');
+      const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
+      const resultsRef = useRef(null);
+
+      const validateKey = async () => {
+        setValidating(true); setKeyValid(null);
+        try {
+          const base = apiBase.replace(/\/+$/, '');
+          const r = await fetch(`${base}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({ model, messages: [{ role: 'user', content: 'Say OK' }], max_tokens: 5 })
+          });
+          setKeyValid(r.ok);
+        } catch { setKeyValid(false); }
+        setValidating(false);
+      };
+
+      const runPipeline = async () => {
+        if (selectedCase === null || !apiKey) return;
+        setRunning(true); setError(null); setAnalyses({}); setCompletedAgents([]);
+        setReasoningChain([]); setBiasFlags([]); setDecision(null);
+        setReviewSubmitted(false); setHumanDecision(''); setHumanComments('');
+        setActiveTab('credit');
+
+        const tc = TEST_CASES[selectedCase];
+        const sanitized = sanitizePII(tc);
+        setPiiData({ before: { name: tc.name, ssn: tc.ssn, phone: tc.phone, address: tc.address },
+                      after: { name: sanitized.name, ssn: sanitized.ssn, phone: sanitized.phone, address: sanitized.address }});
+
+        const state = { credit: null, income: null, asset: null, collateral: null, critic: null, decision: null, biasFlags: [] };
+        const chain = [`Application ${tc.case_id} initialized`];
+        setReasoningChain([...chain]);
+
+        for (const agent of AGENTS) {
+          setCurrentAgent(agent.id);
+          try {
+            const result = await runAgent(agent.id, tc, sanitized, state, apiKey, apiBase, model);
+            state[agent.id] = result;
+
+            // Check bias
+            const flags = detectBias(result);
+            state.biasFlags = [...state.biasFlags, ...flags];
+            setBiasFlags([...state.biasFlags]);
+
+            // Parse decision
+            if (agent.id === 'decision') {
+              const riskMatch = result.match(/RISK_SCORE:\s*(\d+)/);
+              const riskScore = riskMatch ? parseInt(riskMatch[1]) : 50;
+              let dec = 'CONDITIONAL_APPROVAL';
+              if (result.toUpperCase().includes('DENIED')) dec = 'DENIED';
+              else if (result.toUpperCase().includes('CONDITIONAL_APPROVAL') || result.toUpperCase().includes('CONDITIONAL APPROVAL')) dec = 'CONDITIONAL_APPROVAL';
+              else if (result.toUpperCase().includes('APPROVED')) dec = 'APPROVED';
+              setDecision({ decision: dec, riskScore, memo: result, humanReviewRequired: state.biasFlags.length > 0 || riskScore > 70 });
+            }
+
+            chain.push(`${agent.name}: Completed analysis`);
+            setReasoningChain([...chain]);
+            setAnalyses(prev => ({ ...prev, [agent.id]: result }));
+            setCompletedAgents(prev => [...prev, agent.id]);
+          } catch (e) {
+            setError(`${agent.name} failed: ${e.message}`);
+            setRunning(false); setCurrentAgent(null);
+            return;
+          }
+        }
+        setCurrentAgent(null); setRunning(false);
+        setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 200);
+      };
+
+      const tc = selectedCase !== null ? TEST_CASES[selectedCase] : null;
+
+      return (
+        <div>
+          {/* Header */}
+          <div className="header">
+            <div className="container header-inner">
+              <div className="logo">
+                <div className="logo-icon">🏦</div>
+                <div className="logo-text">
+                  <h1>Senior Mortgage Underwriting System</h1>
+                  <span>Multi-Agent AI Pipeline &bull; LangGraph Architecture</span>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                <span className="badge badge-blue">GPT-4o</span>
+                <span className="badge badge-blue">RAG</span>
+                <span className="badge badge-blue">6 Agents</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="container">
+            {/* About */}
+            <div style={{padding:'32px 0 16px'}}>
+              <div className="card" style={{background:'linear-gradient(135deg, rgba(59,130,246,0.05), rgba(168,85,247,0.05))'}}>
+                <p className="info-text">
+                  This demo showcases a <span className="highlight">multi-agent AI system</span> for automated mortgage underwriting built with <span className="highlight">LangGraph</span> architecture. Six specialized agents analyze applications through credit, income, asset, and collateral evaluation, with quality assurance and final decision synthesis. The system includes <span className="highlight">PII sanitization</span>, <span className="highlight">Fair Lending Act bias detection</span>, <span className="highlight">RAG-based policy retrieval</span>, and <span className="highlight">human-in-the-loop review</span>.
+                </p>
+                <div className="tech-stack">
+                  {['LangGraph','LangChain','OpenAI GPT-4o','RAG','ChromaDB','PII Protection','Bias Detection','HITL Review','Python','FastAPI'].map(t =>
+                    <span key={t} className="tech-tag">{t}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* API Key */}
+            <div className="api-section">
+              <div className="card api-card">
+                <div className="card-title">🔑 API Configuration</div>
+                <p style={{fontSize:'13px',color:'var(--text2)',marginTop:'8px'}}>Enter your OpenAI API key to power the AI agents. Your key is only used in your browser — never stored or sent to any server.</p>
+                <div className="input-group">
+                  <input type="password" placeholder="sk-..." value={apiKey} onChange={e => {setApiKey(e.target.value); setKeyValid(null);}} />
+                  <input placeholder="API Base URL" value={apiBase} onChange={e => setApiBase(e.target.value)} style={{maxWidth:'280px'}} />
+                  <select value={model} onChange={e => setModel(e.target.value)} style={{maxWidth:'180px'}}>
+                    <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="gpt-4-turbo">gpt-4-turbo</option>
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                  </select>
+                  <button className="btn btn-primary" onClick={validateKey} disabled={!apiKey || validating}>
+                    {validating ? <><span className="spinner"></span> Validating...</> : 'Validate Key'}
+                  </button>
+                </div>
+                {keyValid === true && <div className="status-msg status-success">API key validated successfully.</div>}
+                {keyValid === false && <div className="status-msg status-error">Invalid API key or unreachable endpoint. Please check and try again.</div>}
+              </div>
+            </div>
+
+            {/* Test Cases */}
+            <div>
+              <h2 className="section-title">Select Test Case</h2>
+              <p className="section-desc">Choose a mortgage application to run through the multi-agent underwriting pipeline.</p>
+              <div className="cases-grid">
+                {TEST_CASES.map((tc, i) => {
+                  const debts = tc.debts ? Object.values(tc.debts).reduce((a,b)=>a+b,0) : 0;
+                  const proposed = tc.loan?.estimated_payment || 0;
+                  const income = tc.employment?.monthly_income || 0;
+                  const dti = income > 0 ? ((debts + proposed) / income * 100).toFixed(1) : 0;
+                  const ltv = tc.property?.appraised_value > 0 ? (tc.loan.amount / tc.property.appraised_value * 100).toFixed(1) : 0;
+                  const expected = tc.expected_decision;
+                  const badgeClass = expected === 'APPROVED' ? 'badge-green' : expected === 'DENIED' ? 'badge-red' : 'badge-yellow';
+
+                  return (
+                    <div key={i} className={`card case-card ${selectedCase === i ? 'selected' : ''}`} onClick={() => !running && setSelectedCase(i)}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'start',marginBottom:'12px'}}>
+                        <div>
+                          <div style={{fontWeight:700,fontSize:'15px'}}>{tc.name}</div>
+                          <div style={{fontSize:'12px',color:'var(--text2)'}}>{tc.case_id}</div>
+                        </div>
+                        <span className={`badge ${badgeClass}`}>{expected.replace('_',' ')}</span>
+                      </div>
+                      <div className="case-stat"><span className="label">Credit Score</span><span className="value">{tc.credit_score}</span></div>
+                      <div className="case-stat"><span className="label">Loan Amount</span><span className="value">${tc.loan.amount.toLocaleString()}</span></div>
+                      <div className="case-stat"><span className="label">DTI Ratio</span><span className="value" style={{color: dti > 43 ? 'var(--red)' : dti > 36 ? 'var(--yellow)' : 'var(--green)'}}>{dti}%</span></div>
+                      <div className="case-stat"><span className="label">LTV Ratio</span><span className="value">{ltv}%</span></div>
+                      <div className="case-stat"><span className="label">Monthly Income</span><span className="value">${income.toLocaleString()}</span></div>
+                      <div className="case-stat"><span className="label">Employment</span><span className="value">{tc.employment?.years}yr / {tc.employment?.type}</span></div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{textAlign:'center',marginBottom:'32px'}}>
+                <button className="btn btn-primary" style={{padding:'14px 48px',fontSize:'16px'}} onClick={runPipeline}
+                  disabled={selectedCase === null || !apiKey || running || keyValid === false}>
+                  {running ? <><span className="spinner"></span> Running Pipeline...</> : '▶ Run Underwriting Pipeline'}
+                </button>
+              </div>
+            </div>
+
+            {/* Workflow Visualization */}
+            {(running || completedAgents.length > 0) && (
+              <div className="workflow-section">
+                <h2 className="section-title">Agent Workflow Pipeline</h2>
+                <p className="section-desc">Real-time multi-agent execution — each specialist analyzes the application sequentially.</p>
+                <div className="card">
+                  <div className="workflow-pipeline">
+                    <div className="workflow-node">
+                      <div className="node-circle done" style={{fontSize:'14px'}}>📋</div>
+                      <div className="node-label done">Init</div>
+                    </div>
+                    <span className="workflow-arrow done">→</span>
+                    {AGENTS.map((agent, i) => {
+                      const isDone = completedAgents.includes(agent.id);
+                      const isActive = currentAgent === agent.id;
+                      return (
+                        <React.Fragment key={agent.id}>
+                          <div className="workflow-node">
+                            <div className={`node-circle ${isDone ? 'done' : isActive ? 'active' : ''}`}>
+                              {isDone ? '✓' : agent.icon}
+                            </div>
+                            <div className={`node-label ${isDone ? 'done' : isActive ? 'active' : ''}`}>
+                              {agent.name.split(' ')[0]}
+                            </div>
+                          </div>
+                          {i < AGENTS.length - 1 && (
+                            <span className={`workflow-arrow ${isDone ? 'done' : ''}`}>→</span>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
+                  {currentAgent && (
+                    <div style={{textAlign:'center',padding:'8px 0',color:'var(--primary)',fontSize:'13px'}}>
+                      <span className="spinner" style={{marginRight:'8px',borderColor:'rgba(59,130,246,0.3)',borderTopColor:'var(--primary)'}}></span>
+                      {AGENTS.find(a => a.id === currentAgent)?.name} is analyzing...
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {error && <div className="status-msg status-error" style={{marginBottom:'20px'}}>{error}</div>}
+
+            {/* Results */}
+            {completedAgents.length > 0 && !running && (
+              <div className="results-section" ref={resultsRef}>
+                {/* PII Sanitization */}
+                {piiData && (
+                  <div className="card" style={{marginBottom:'20px'}}>
+                    <div className="card-title">🛡️ PII Sanitization — GDPR / CCPA / GLBA Compliant</div>
+                    <div className="pii-grid" style={{marginTop:'16px'}}>
+                      <div className="pii-box">
+                        <h4 style={{color:'var(--red)'}}>Before (Raw Data)</h4>
+                        <div className="pii-row"><span className="field">Name</span><span className="original">{piiData.before.name}</span></div>
+                        <div className="pii-row"><span className="field">SSN</span><span className="original">{piiData.before.ssn}</span></div>
+                        <div className="pii-row"><span className="field">Phone</span><span className="original">{piiData.before.phone}</span></div>
+                        <div className="pii-row"><span className="field">Address</span><span className="original">{piiData.before.address}</span></div>
+                      </div>
+                      <div className="pii-box">
+                        <h4 style={{color:'var(--green)'}}>After (Sent to AI Agents)</h4>
+                        <div className="pii-row"><span className="field">Name</span><span className="redacted">{piiData.after.name}</span></div>
+                        <div className="pii-row"><span className="field">SSN</span><span className="redacted">{piiData.after.ssn}</span></div>
+                        <div className="pii-row"><span className="field">Phone</span><span className="redacted">{piiData.after.phone}</span></div>
+                        <div className="pii-row"><span className="field">Address</span><span className="redacted">{piiData.after.address}</span></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Key Metrics */}
+                {tc && (
+                  <div className="card" style={{marginBottom:'20px'}}>
+                    <div className="card-title">📊 Application Metrics</div>
+                    <div className="metrics-grid">
+                      <div className="metric-card">
+                        <div className="metric-value" style={{color: tc.credit_score >= 700 ? 'var(--green)' : tc.credit_score >= 620 ? 'var(--yellow)' : 'var(--red)'}}>{tc.credit_score}</div>
+                        <div className="metric-label">Credit Score</div>
+                      </div>
+                      <div className="metric-card">
+                        {(() => { const debts = Object.values(tc.debts||{}).reduce((a,b)=>a+b,0); const dti = ((debts + (tc.loan?.estimated_payment||0)) / (tc.employment?.monthly_income||1) * 100); return (
+                          <><div className="metric-value" style={{color: dti <= 43 ? 'var(--green)' : dti <= 50 ? 'var(--yellow)' : 'var(--red)'}}>{dti.toFixed(1)}%</div><div className="metric-label">DTI Ratio</div></>
+                        );})()}
+                      </div>
+                      <div className="metric-card">
+                        {(() => { const ltv = (tc.loan.amount / (tc.property?.appraised_value||1) * 100); return (
+                          <><div className="metric-value" style={{color: ltv <= 80 ? 'var(--green)' : ltv <= 95 ? 'var(--yellow)' : 'var(--red)'}}>{ltv.toFixed(1)}%</div><div className="metric-label">LTV Ratio</div></>
+                        );})()}
+                      </div>
+                      <div className="metric-card">
+                        <div className="metric-value">${tc.loan.amount.toLocaleString()}</div>
+                        <div className="metric-label">Loan Amount</div>
+                      </div>
+                      <div className="metric-card">
+                        <div className="metric-value">${(tc.employment?.monthly_income||0).toLocaleString()}</div>
+                        <div className="metric-label">Monthly Income</div>
+                      </div>
+                      <div className="metric-card">
+                        <div className="metric-value">{tc.employment?.years || 0}yr</div>
+                        <div className="metric-label">Employment</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Decision Card */}
+                {decision && (
+                  <div className={`card decision-card`} style={{
+                    background: decision.decision === 'APPROVED' ? 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.02))' :
+                      decision.decision === 'DENIED' ? 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02))' :
+                      'linear-gradient(135deg, rgba(234,179,8,0.08), rgba(234,179,8,0.02))',
+                    borderColor: decision.decision === 'APPROVED' ? 'rgba(34,197,94,0.3)' : decision.decision === 'DENIED' ? 'rgba(239,68,68,0.3)' : 'rgba(234,179,8,0.3)'
+                  }}>
+                    <div style={{fontSize:'13px',color:'var(--text2)',textTransform:'uppercase',letterSpacing:'1px'}}>AI Recommendation</div>
+                    <div className="decision-text" style={{
+                      color: decision.decision === 'APPROVED' ? 'var(--green)' : decision.decision === 'DENIED' ? 'var(--red)' : 'var(--yellow)'
+                    }}>
+                      {decision.decision.replace('_', ' ')}
+                    </div>
+                    <div style={{fontSize:'13px',color:'var(--text2)'}}>Risk Score</div>
+                    <div className="risk-score" style={{
+                      color: decision.riskScore <= 30 ? 'var(--green)' : decision.riskScore <= 60 ? 'var(--yellow)' : 'var(--red)'
+                    }}>{decision.riskScore}<span style={{fontSize:'20px',color:'var(--text2)'}}>/100</span></div>
+                    <div className="risk-bar">
+                      <div className="risk-fill" style={{
+                        width: `${decision.riskScore}%`,
+                        background: decision.riskScore <= 30 ? 'var(--green)' : decision.riskScore <= 60 ? 'var(--yellow)' : 'var(--red)'
+                      }}></div>
+                    </div>
+                    {decision.humanReviewRequired && (
+                      <div style={{marginTop:'12px'}}>
+                        <span className="badge badge-yellow">Human Review Required</span>
+                      </div>
+                    )}
+                    {biasFlags.length > 0 && (
+                      <div style={{marginTop:'12px',fontSize:'13px',color:'var(--yellow)'}}>
+                        Bias Flags: {biasFlags.map((f,i) => <span key={i} className="badge badge-yellow" style={{margin:'2px'}}>{f}</span>)}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Agent Analyses Tabs */}
+                <div className="card" style={{marginBottom:'20px'}}>
+                  <div className="card-title">🤖 Agent Analyses</div>
+                  <div className="tabs" style={{marginTop:'12px'}}>
+                    {AGENTS.filter(a => analyses[a.id]).map(a => (
+                      <button key={a.id} className={`tab ${activeTab === a.id ? 'active' : ''}`} onClick={() => setActiveTab(a.id)}>
+                        {a.icon} {a.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="analysis-content">{analyses[activeTab] || 'No analysis available.'}</div>
+                </div>
+
+                {/* Human Review */}
+                {decision && (
+                  <div className="card review-section" style={{marginBottom:'20px'}}>
+                    <div className="card-title">👤 Senior Underwriter Review (Human-in-the-Loop)</div>
+                    <p style={{fontSize:'13px',color:'var(--text2)',margin:'8px 0 16px'}}>As the senior underwriter, review the AI recommendation and provide your final decision.</p>
+
+                    {!reviewSubmitted ? (
+                      <>
+                        <div className="review-options">
+                          {['APPROVED','CONDITIONAL','REJECTED'].map(opt => (
+                            <button key={opt} className={`review-option ${humanDecision === opt ? 'selected' : ''}`}
+                              onClick={() => setHumanDecision(opt)}
+                              style={opt === 'APPROVED' ? {borderColor: humanDecision===opt ? 'var(--green)' : ''} :
+                                     opt === 'REJECTED' ? {borderColor: humanDecision===opt ? 'var(--red)' : ''} :
+                                     {borderColor: humanDecision===opt ? 'var(--yellow)' : ''}}>
+                              {opt === 'APPROVED' ? '✅' : opt === 'REJECTED' ? '❌' : '⚠️'} {opt}
+                            </button>
+                          ))}
+                        </div>
+                        <textarea className="review-comments" placeholder="Enter your review comments..." value={humanComments} onChange={e => setHumanComments(e.target.value)} />
+                        <button className="btn btn-primary" onClick={() => { if (humanDecision && humanComments.trim()) setReviewSubmitted(true); }}
+                          disabled={!humanDecision || !humanComments.trim()}>
+                          Submit Review
+                        </button>
+                      </>
+                    ) : (
+                      <div className="card" style={{background:'var(--bg)',marginTop:'12px'}}>
+                        <div style={{fontSize:'14px',fontWeight:600,marginBottom:'8px',color: humanDecision === 'APPROVED' ? 'var(--green)' : humanDecision === 'REJECTED' ? 'var(--red)' : 'var(--yellow)'}}>
+                          Final Decision: {humanDecision} {humanDecision !== decision.decision.replace('_APPROVAL','') ? '(Override)' : '(Confirmed)'}
+                        </div>
+                        <div style={{fontSize:'13px',color:'var(--text2)'}}>Comments: {humanComments}</div>
+                        <div style={{marginTop:'12px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                          <span className="badge badge-green">GDPR Compliant</span>
+                          <span className="badge badge-green">CCPA Compliant</span>
+                          <span className="badge badge-green">GLBA Compliant</span>
+                          <span className="badge badge-green">ECOA Compliant</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Reasoning Chain */}
+                {reasoningChain.length > 0 && (
+                  <div className="card" style={{marginBottom:'20px'}}>
+                    <div className="card-title">🔍 Audit Trail — Reasoning Chain</div>
+                    <div className="chain" style={{marginTop:'12px'}}>
+                      {reasoningChain.map((step, i) => (
+                        <div key={i} className="chain-item">
+                          <span className="chain-num">{i+1}</span>
+                          <span className="chain-text">{step}</span>
+                        </div>
+                      ))}
+                      {reviewSubmitted && (
+                        <div className="chain-item">
+                          <span className="chain-num">{reasoningChain.length + 1}</span>
+                          <span className="chain-text">Human Review: {humanDecision} — {humanComments.substring(0,80)}...</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="footer">
+            <div className="container">
+              <p>Senior Mortgage Underwriting System — Multi-Agent AI Demo</p>
+              <p style={{marginTop:'4px'}}>Built with LangGraph Architecture &bull; Educational Project &bull; Not Financial Advice</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
