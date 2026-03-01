@@ -7,6 +7,7 @@ A multi-agent AI system for automated mortgage underwriting, built with **LangGr
 ![Compliance](https://img.shields.io/badge/Compliance-GDPR_CCPA_GLBA-orange)
 ![Deploy](https://img.shields.io/badge/Deploy-Netlify-00C7B7)
 
+[Video Walkthrough](https://www.youtube.com/watch?v=rJRX7LiP44s)
 ## Architecture
 
 ```
