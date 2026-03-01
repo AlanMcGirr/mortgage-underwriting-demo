@@ -2,10 +2,6 @@
 
 A multi-agent AI system for automated mortgage underwriting, built with **LangGraph** architecture. This demo showcases how six specialized AI agents collaborate to analyze mortgage applications through credit, income, asset, and collateral evaluation — with quality assurance, bias detection, and human-in-the-loop review.
 
-![Multi-Agent Pipeline](https://img.shields.io/badge/Agents-6_Specialists-blue)
-![RAG](https://img.shields.io/badge/RAG-Policy_Retrieval-green)
-![Compliance](https://img.shields.io/badge/Compliance-GDPR_CCPA_GLBA-orange)
-![Deploy](https://img.shields.io/badge/Deploy-Netlify-00C7B7)
 
 [Video Walkthrough](https://www.youtube.com/watch?v=rJRX7LiP44s)
 ## Architecture
